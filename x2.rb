@@ -10,7 +10,7 @@ class String
     self.gsub("\n","")
         .gsub("\r","")
         .gsub("\t","")
-	.gsub("<br><br>","\n")
+	.gsub("<br><br>","\n\n")
   end
   def gbk
     self.encode("UTF-8","UTF-8",invalid: :replace,undef: :replace)
@@ -22,6 +22,7 @@ class String
 end
 
 $Txt=Hash.new{""}
+$Content=Hash.new{""}
       
 class INDEX 
   def initialize url
@@ -51,10 +52,13 @@ class PAGE
     begin
       @chapter_id=@body.match(/var chapter_id = "(\d+)";/)[1]
       @next_page=@body.match(/var next_page = \".*?#$Book\/(.*?)(.html)?";/)[1]
+      @chapter_name=@body.match(/var chaptername = "(.*?)";/)[1]
       @txt=@body.match(/<div id="content">(.*?)<p>/m)[1].gbk
+      $Content[@chapter_id]=@chapter_name
       $Txt[@chapter_id]+=@txt
     rescue 
       pp @body
+      exit
     end
   end
   def try_next_page
@@ -65,7 +69,7 @@ end
 thread=[]
 $index =INDEX.new("".url).index
 
-$index.each_slice($index.size/10).each_with_index do |e,n|
+$index.each_slice($index.size/50).each_with_index do |e,n|
   thread[n]=Thread.new {
     e.each do |r|
       PAGE.new(r)
@@ -73,9 +77,15 @@ $index.each_slice($index.size/10).each_with_index do |e,n|
   }
 end
 
+
 thread.each{|t| t.join}
+
+puts "#FanRen2"
+
 $index.each do |e|
-  puts $Txt[e.split(".")[0]].fix
+  idx=e.split(".")[0]
+  puts "##"+$Content[idx]
+  puts $Txt[idx].fix
 end
 
 
