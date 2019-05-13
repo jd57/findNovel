@@ -19,23 +19,25 @@ require 'fileutils'
 include FileUtils
 
 
-md_file="fanren2.md"
+md_file=ARGV[0]
+html_file=md_file+".html"
+mobi_file=md_file+".mobi"
 
 #`./x2.rb > md_file`
 
-format =  'epub'
+format =  'mobi'
 lang="zh"
 
 
-    book_title = 'Fanren2'
-    authors = 'WangYu'
+    book_title = 'HomeMakeNovel'
+    authors = 'XXX'
 
     book_content = %(<html xmlns="http://www.w3.org/1999/xhtml"><head><title>#{book_title}</title></head><body>)
     content = File.read(md_file)
     book_content << RDiscount.new(content).to_html
     book_content << "</body></html>"
 
-    File.open("fanren2.html", 'w') do |output|
+    File.open(html_file, 'w') do |output|
       output.write(book_content)
     end
 
@@ -48,7 +50,7 @@ lang="zh"
       $ebook_convert_cmd = mac_osx_path
     end
 
-    system($ebook_convert_cmd, "fanren2.html", "fanren2.#{format}",
+    system($ebook_convert_cmd, html_file, mobi_file,
            '--level1-toc', '//h:h1',
            '--level2-toc', '//h:h2',
            '--language', lang)

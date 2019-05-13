@@ -1,0 +1,56 @@
+#!/usr/bin/env ruby
+# encoding: utf-8
+# This script convers markdown book to one of the serveral e-book
+# formats supported with calibre (http://calibre-ebook.com)
+#
+# Samples:
+#
+# Build e-book for amazon kindle for english and russian languages
+# 	$ ruby makeebooks en ru
+# or
+# 	$ FORMAT=mobi ruby makeebooks en ru
+#
+# Build e-book in 'epub' format for russian only
+# 	$ FORMAT=epub ruby makeebooks ru
+
+require 'rubygems'
+require 'rdiscount'
+require 'fileutils'
+include FileUtils
+
+
+md_file=ARGV[0]
+html_file=md_file+".html"
+epub_file=md_file+".epub"
+
+#`./x2.rb > md_file`
+
+format =  'epub'
+lang="zh"
+
+
+    book_title = 'HomeMakeNovel'
+    authors = 'XXX'
+
+    book_content = %(<html xmlns="http://www.w3.org/1999/xhtml"><head><title>#{book_title}</title></head><body>)
+    content = File.read(md_file)
+    book_content << RDiscount.new(content).to_html
+    book_content << "</body></html>"
+
+    File.open(html_file, 'w') do |output|
+      output.write(book_content)
+    end
+
+    $ebook_convert_cmd = ENV['ebook_convert_path'].to_s
+    if $ebook_convert_cmd.empty?
+      $ebook_convert_cmd = `which ebook-convert`.chomp
+    end
+    if $ebook_convert_cmd.empty?
+      mac_osx_path = '/Applications/calibre.app/Contents/MacOS/ebook-convert'
+      $ebook_convert_cmd = mac_osx_path
+    end
+
+    system($ebook_convert_cmd, html_file, epub_file,
+           '--level1-toc', '//h:h1',
+           '--level2-toc', '//h:h2',
+           '--language', lang)
